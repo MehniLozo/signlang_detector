@@ -7,9 +7,11 @@ from keras.models import load_model
 import numpy as np
 import time
 import pandas as pd
+from mod import Engine
 
-model = load_model('gest.h5')
-
+model = load_model('americansign.h5')
+moderator = Engine()
+moderator.start_new()
 mphands = mp.solutions.hands
 hands = mphands.Hands()
 mp_drawing = mp.solutions.drawing_utils
@@ -21,6 +23,12 @@ h, w, c = frame.shape
 
 captured_frame = ''
 letterpred = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
+
+
+print("********************** Current letter ************************")
+print(moderator.current_letter)
+print("***************************************************************")
+
 while True:
     _, frame = cap.read()
 
@@ -90,13 +98,15 @@ while True:
             if value==pred1:
                 print("Predicted Character 1: ", key)
                 print('Confidence 1: ', 100*value)
+                print("COMPARISON WITH GAME LETTER")
+                print(moderator.repeat_letter(key))
             elif value==pred2:
                 print("Predicted Character 2: ", key)
                 print('Confidence 2: ', 100*value)
             elif value==pred3:
                 print("Predicted Character 3: ", key)
                 print('Confidence 3: ', 100*value)
-        time.sleep(5)
+        #time.sleep(5)
 
     framergb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     result = hands.process(framergb)
