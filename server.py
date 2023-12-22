@@ -11,11 +11,12 @@ import time
 import pandas as pd
 import random
 import string
-
+import threading
 
 app = Flask(__name__)
 ask = Ask(app, '/')
 
+processing = False
 mphands = mp.solutions.hands
 hands = mphands.Hands()
 mp_drawing = mp.solutions.drawing_utils
@@ -106,10 +107,7 @@ moderator = Engine()
 moderator.start_new()
 
 
-@ask.intent("StartGameIntent")
-def startGameIntent():
-
-    moderator.start_new()
+def opencv_process():
     print("Entered the start game")
     global display_live_feed
     global last_captured
@@ -133,9 +131,9 @@ def startGameIntent():
 
         if k % 256 == 32:
             last_captured = frame
-            showframe = captured_frame
-            cv2.imshow("Frame", showframe)
-            framergbanalysis = cv2.cvtColor(captured_frame, cv2.COLOR_BGR2RGB)
+            #showframe = captured_frame
+            #cv2.imshow("Frame", showframe)
+            framergbanalysis = cv2.cvtColor(last_captured, cv2.COLOR_BGR2RGB)
             resultanalysis = hands.process(framergbanalysis)
             landmarks_scan = resultanalysis.multi_hand_landmarks
 
@@ -174,7 +172,17 @@ def startGameIntent():
     cap.release()
     cv2.destroyAllWindows()
 
-    return statement(speech_text)
+
+@ask.intent("StartGameIntent")
+def startGameIntent():
+
+    moderator.start_new()
+    opencv_thread = threading.Thread(target=opencv_process)
+    opencv_thread.start()
+
+    #return statement(speech_text)
+    return statement("El juego ha empezado")
+
 
 @ask.intent("capIntent")
 def cap():
@@ -189,6 +197,9 @@ def cap():
     speech = ''
     letterpred = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
     speech_text = f"¡Genial! Empezamos: {moderator.current_letter} , dime cap cuando me quieres analisar"
+    if not last_captured:
+        return statement("No hay ningun frame capturado")
+    
     if landmarks_scan:
         for handLMsanalysis in landmarks_scan:
             x_max = 0
@@ -209,15 +220,14 @@ def cap():
             y_max += 20
             x_min -= 20
             x_max += 20
-    if not captured_frame:
-        print("There is no captured frame")
-        return
-    captured_frame = cv2.cvtColor(captured_frame, cv2.COLOR_BGR2GRAY) 
+    
+    captured_frame = cv2.cvtColor(last_captured, cv2.COLOR_BGR2GRAY) 
     captured_frame = captured_frame[y_min:y_max, x_min:x_max]
     captured_frame = cv2.resize(captured_frame,(28,28))
 
 
-    nlist = []
+    #nlist = []
+    nlist = captured_frame.flatten().tolist()
     rows,cols = captured_frame.shape
     for i in range(rows):
         for j in range(cols):
@@ -285,4 +295,4 @@ def session_ended():
     return "{}", 200
 
 if __name__ == '__main__':
-    app.run(port = 7045, debug=True)
+    app.run(port = 7045, debug=True, threaded=True)
