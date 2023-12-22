@@ -12,6 +12,8 @@ import pandas as pd
 import random
 import string
 import threading
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 ask = Ask(app, '/')
