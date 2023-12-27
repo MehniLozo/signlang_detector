@@ -281,8 +281,8 @@ def hello(firstname):
 
 @ask.intent('StopIntent')
 def stop():
-    cap.release()
-    cv2.destroyAllWindows()
+    global display_live_feed
+    display_live_feed = False
     return statement("El juego esta terminado con score " + moderator.score)
 
 

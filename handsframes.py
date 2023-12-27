@@ -98,8 +98,13 @@ while True:
             if value==pred1:
                 print("Predicted Character 1: ", key)
                 print('Confidence 1: ', 100*value)
+                print()
+                print()
                 print("COMPARISON WITH GAME LETTER")
+                print()
                 print(moderator.repeat_letter(key))
+                print()
+                print()
             elif value==pred2:
                 print("Predicted Character 2: ", key)
                 print('Confidence 2: ', 100*value)
